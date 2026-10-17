@@ -1,0 +1,1317 @@
+<!doctype html>
+<html lang="de" data-theme="dd">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ein Workflow, der die Arbeit übernimmt: ECS, Rector, Twig-CS-Fixer, PHPStan und GitHub Actions für Contao und Symfony">
+
+    <title>Ein Workflow, der die Arbeit übernimmt</title>
+
+    <script>
+        try {
+            const theme = localStorage.getItem('dd-theme');
+            if (['dd', 'dark', 'contrast'].includes(theme)) document.documentElement.dataset.theme = theme;
+        } catch (e) {
+        }
+
+        let motion = null;
+        try {
+            motion = localStorage.getItem('dd-motion');
+        } catch (e) {
+        }
+        document.documentElement.dataset.motion = ['on', 'off'].includes(motion) ? motion
+            : (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'off' : 'on');
+    </script>
+
+    <link rel="stylesheet" href="dist/reset.css">
+    <link rel="stylesheet" href="dist/reveal.css">
+    <link rel="stylesheet" href="plugin/highlight/monokai.css">
+    <link rel="stylesheet" href="css/dd.css">
+</head>
+<body>
+<fieldset class="theme-switch">
+    <legend>Darstellung</legend>
+    <input type="radio" name="theme" id="theme-dd" value="dd" checked>
+    <label for="theme-dd">Hell</label>
+    <input type="radio" name="theme" id="theme-dark" value="dark">
+    <label for="theme-dark">Dunkel</label>
+    <input type="radio" name="theme" id="theme-contrast" value="contrast">
+    <label for="theme-contrast">Kontrast</label>
+    <span class="motion-toggle">
+      <input type="checkbox" id="motion" checked>
+      <label for="motion">Animationen</label>
+    </span>
+</fieldset>
+
+<img class="dd-logo dd-logo--dark" src="images/dd/logo-dark.svg" alt="Digitale Dinge">
+<img class="dd-logo dd-logo--light" src="images/dd/logo-light.svg" alt="Digitale Dinge">
+
+<div class="reveal">
+    <div class="slides">
+
+        <!-- Einstieg -->
+
+        <section id="cover" class="cover">
+            <div>
+                <p class="kicker">Contao Summit 2026</p>
+                <h1>Ein Workflow, der die Arbeit übernimmt</h1>
+                <p class="meta">Tool-assisted Refactoring in Contao und Symfony<br>Sebastian Zoglowek</p>
+            </div>
+            <img class="illu" src="images/dd/rocket.png" alt="">
+        </section>
+
+        <section id="about">
+            <h2>Über mich</h2>
+            <ul>
+                <li>Contao Core Entwickler</li>
+                <li>Digitale Dinge GmbH</li>
+                <li>The
+                    <mark>Dark-Mode</mark>
+                    guy
+                </li>
+            </ul>
+            <p class="meta"><a href="https://github.com/zoglo">github.com/zoglo</a></p>
+        </section>
+        <section id="kiss">
+            <p class="kicker">Kapitel 0 · Ausgangslage</p>
+            <h2>contao-kiss (digitaledinge/contao-kiss)</h2>
+            <ul>
+                <li>Framework bei Digitale Dinge GmbH, Basis für alle Websites</li>
+                <li>Twig Globals, Value objects (enums), virtuelle Felder (>=5.7)</li>
+                <li>KI-assistierte PRs: viel zusätzliche Arbeit im Review</li>
+            </ul>
+        </section>
+        <section id="error-classes">
+            <h2>PRs und Review-Schleifen</h2>
+            <ul>
+                <li class="fragment">Änderungen im PR, die mit Bugfix oder Feature nichts zu tun hatten</li>
+                <li class="fragment"><code>.editorconfig</code> in VS Code nicht berücksichtigt: 4, 3 oder 2 Leerzeichen
+                </li>
+                <li class="fragment">Twig-Vorgaben vergessen, unter anderem <code class="danger">|raw</code></li>
+                <li class="fragment">Im Review immer wieder: „Mach es doch wie in den anderen Templates. Schau dir das
+                    doch ab.“
+                </li>
+                <li class="fragment">Changes requested</li>
+            </ul>
+        </section>
+        <section id="what-happened">
+            <h2>Neuer Versuch</h2>
+            <ul>
+                <li class="fragment"><code>SKILL.md</code> mit unseren Vorgaben.</li>
+                <li class="fragment">Die KI erkannte nun vorhandenen Code.</li>
+                <li class="fragment">Änderte Code für das Feature gleich mit, ganz ohne Auftrag.</li>
+                <li class="fragment">CSS-Klassen und Enums geändert: Migrationen wären nötig gewesen.</li>
+                <li class="fragment">Changes requested</li>
+            </ul>
+        </section>
+        <section id="recap-2025">
+            <p class="kicker">Letztes Jahr</p>
+            <h2>Contao, wie geht es heute?</h2>
+            <table class="rules overview fragment">
+                <tr>
+                    <th></th>
+                    <th>Meldet Fehler</th>
+                    <th>Fixed Fehler</th>
+                </tr>
+                <tr>
+                    <td>PHP-Stil</td>
+                    <td>PHP_CodeSniffer</td>
+                    <td>PHP-CS-Fixer, ECS</td>
+                </tr>
+                <tr>
+                    <td>Logik</td>
+                    <td>PHPStan, Psalm</td>
+                    <td>Rector</td>
+                </tr>
+                <tr class="fragment">
+                    <td>Twig-Stil</td>
+                    <td colspan="2">Twig-CS-Fixer: meldet und fixt</td>
+                </tr>
+            </table>
+            <aside class="notes"></aside>
+        </section>
+        <section id="not-only-ai">
+            <p class="kicker">Dieses Jahr</p>
+            <h2>Tool-assisted Refactoring in Contao und Symfony</h2>
+            <ul>
+                <li>Easy Coding Standard</li>
+                <li>Rector</li>
+                <li>Twig-CS-Fixer</li>
+                <li>PHPStan</li>
+            </ul>
+            <p class="fragment">Das kann man doch verbinden, oder?</p>
+        </section>
+
+        <section id="agenda">
+            <h2>Agenda</h2>
+            <div class="cols">
+                <ol>
+                    <li>ECS und Rector</li>
+                    <li>Eine eigene Rector-Regel</li>
+                    <li>Twig-CS-Fixer</li>
+                </ol>
+                <ol start="4">
+                    <li>PHPStan und GitHub Actions</li>
+                    <li>KI: Feedback und Projektkontext</li>
+                    <li>Tools miteinbeziehen</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="three-levels">
+            <h2>Drei Arten von Feedback</h2>
+            <div class="cols" style="--cols: 3">
+                <div class="card">
+                    <span class="pill">Mechanisch</span>
+                    <p>Eine bekannte Änderung automatisch ausführen.</p>
+                    <p class="meta">ECS · Rector · Twig-CS-Fixer</p>
+                </div>
+                <div class="card fragment">
+                    <span class="pill">Überprüfbar</span>
+                    <p>Eine mögliche Fehlerstelle im Code finden.</p>
+                    <p class="meta">PHPStan · Twig-CS-Fixer</p>
+                </div>
+                <div class="card fragment">
+                    <span class="pill">Kontextuell</span>
+                    <p>Verstehen, was im Projekt gewollt ist.</p>
+                    <p class="meta">Mensch · AGENTS.md · Skills</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 1 · Stil und Zielversion -->
+
+        <section id="ecs">
+            <p class="kicker">Kapitel 1 · Stil und Zielversion</p>
+            <h2>1. Problem: wechselnder Coding Style</h2>
+            <ul>
+                <li>Die <code>.editorconfig</code> wurde nicht angewendet; Einrückungen wechselten.</li>
+                <li><strong>ECS</strong> setzt den PHP-Stil automatisch. Es läuft vor dem Commit oder als Check im Pull
+                    Request.
+                </li>
+                <li>Basis: <strong>PSR-12</strong> plus Projektregeln. Der Diff zeigt wieder die inhaltliche Änderung.
+                </li>
+            </ul>
+            <pre><code class="language-bash" data-trim>
+          composer ecs
+          </code></pre>
+            <p class="meta footnote"><a
+                    href="https://www.php-fig.org/psr/psr-12/">https://www.php-fig.org/psr/psr-12/</a></p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="ecs-example">
+            <h2>Wie sieht PSR-12 aus?</h2>
+            <div class="cols">
+            <pre class="code-tall"><code class="language-php" data-trim data-noescape>
+          class Foo{
+            function bar($a,$b){
+              if($a){return $b;}
+            }
+          }
+            </code></pre>
+                <pre class="code-tall"><code class="language-php" data-trim data-noescape>
+          class Foo
+          {
+              public function bar($a, $b)
+              {
+                  if ($a) {
+                      return $b;
+                  }
+              }
+          }
+            </code></pre>
+            </div>
+            <p class="meta">Links ohne Standard, rechts mit.</p>
+        </section>
+
+        <section id="rector-ast">
+            <h2>2. Problem: Code für die falsche Version</h2>
+            <ul>
+                <li>KI-Code trifft nicht immer den Zielstand von Contao, Symfony oder PHP.</li>
+                <li class="fragment"><strong>Rector</strong> modernisiert bekannte Muster mit festgelegten Regeln.</li>
+            </ul>
+        </section>
+        <section id="rector-ast-tree">
+            <h2>Rector - Abstract Syntax Tree</h2>
+            <div>
+                <div>
+                    <p class="meta">Quelltext</p>
+                    <pre><code class="language-php" data-trim>
+          $GLOBALS['TL_DCA']['tl_foo']['config']['dataContainer'] = 'Table';
+              </code></pre>
+                </div>
+                <div>
+                    <p class="meta">← AST →</p>
+                    <pre class="code-tall"><code class="language-plaintext" data-trim data-line-numbers="1|2-6|7">
+          Assign                          (der ganze Ausdruck: =)
+          ├── var: ArrayDimFetch          ['dataContainer']
+          │   └── var: ArrayDimFetch      ['config']
+          │       └── var: ArrayDimFetch  ['tl_foo']
+          │           └── var: ArrayDimFetch  ['TL_DCA']
+          │               └── var: Variable   $GLOBALS
+          └── expr: String_               'Table'
+              </code></pre>
+                </div>
+            </div>
+            <aside class="notes"></aside>
+        </section>
+        <section id="rector-sets">
+            <h2>Rector-Regeln gibt es schon</h2>
+            <ul>
+                <li>PHP und Symfony: Regeln passend zu den Projekt-Abhängigkeiten</li>
+                <li>Contao: <code>contao/contao-rector</code> bis zum gewünschten Zielstand</li>
+                <li><a href="https://getrector.com/find-rule">getrector.com/find-rule</a></li>
+            </ul>
+            <aside class="notes"></aside>
+        </section>
+
+        <!-- 2 · Eigene Rector-Regel -->
+
+        <section id="nested-story">
+            <p class="kicker">Kapitel 2 · Eigene Rector-Regel</p>
+            <h2>Wenn ein Rector-Set nicht reicht</h2>
+            <div class="cols">
+                <div>
+                    <img class="shot" src="images/2018-08-06-Buni.jpg"
+                         alt="Comic: Buni nimmt eine glückliche Blume mit nach Hause, zu Hause stehen vertrocknete Pflanzen"
+                         style="max-height: 560px">
+                    <p class="meta footnote">© 2018 Ryan Pagelow, <a href="https://www.bunicomic.com/comic/buni-1154/">bunicomic.com/comic/buni-1154</a>
+                    </p>
+                </div>
+                <div>
+                    <blockquote class="big">Warum 20 Minuten Regex-Replace, wenn ich 30–40 Stunden in eine Rector-Regel
+                        stecken kann?
+                    </blockquote>
+                    <ul class="fragment">
+                        <li>Einmal geschrieben → für alle Projekte und alle Leute</li>
+                        <li>Heute kann z. B. eine KI die Regel schreiben. Der Refactor mit Rector bleibt <strong>deterministisch</strong>.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <aside class="notes"></aside>
+        </section>
+        <section id="nested-problem" data-auto-animate>
+            <h2>Input und Regel</h2>
+            <p class="meta">Input: eine DCA, zwei Schreibweisen</p>
+            <pre data-id="code"><code class="language-php" data-trim>
+          $GLOBALS['TL_DCA']['tl_foo']['fields']['bar']['flag'] = 13;
+
+          $GLOBALS['TL_DCA']['tl_foo'] = [
+              'fields' => ['bar' => ['flag' => 13]],
+          ];
+          </code></pre>
+            <div class="fragment">
+                <p class="meta">Die Regel: ein Pfad mit Wildcards, der alte Wert, der neue Wert</p>
+                <pre class=""><code class="language-php" data-trim>
+              new ReplaceNestedArrayItemValue(
+                  'TL_DCA.*.fields.*.flag',
+                  13,
+                  new ClassConstFetch(new FullyQualified(DataContainer::class), 'SORT_INITIAL_LETTER_BOTH'),
+              ),
+              </code></pre>
+                <p class="meta fragment"><code>*</code> passt auf jede Tabelle und jedes Feld: <code>TL_DCA.*.fields.*.flag</code>
+                    trifft <code>tl_content</code> genauso wie <code>tl_news</code>.</p>
+            </div>
+            <aside class="notes">Table wird DC_Table::class, 13 wird DataContainer::SORT_INITIAL_LETTER_BOTH)</aside>
+        </section>
+        <section id="nested-problem-fix" data-auto-animate>
+            <h2>Ergebnis</h2>
+            <p class="meta">Dieselbe Datei nach dem Lauf</p>
+            <pre data-id="code"><code class="language-php" data-trim>
+          $GLOBALS['TL_DCA']['tl_foo']['fields']['bar']['flag'] = \Contao\DataContainer::SORT_INITIAL_LETTER_BOTH;
+
+          $GLOBALS['TL_DCA']['tl_foo'] = [
+              'fields' => ['bar' => ['flag' => \Contao\DataContainer::SORT_INITIAL_LETTER_BOTH]],
+          ];
+          </code></pre>
+            <p class="fragment">Beide Schreibweisen, eine Regel. Kein Regex.</p>
+        </section>
+        <section id="nested-rule-class">
+            <h2>Die Rector-Regel ist eine Klasse</h2>
+            <p class="meta">Gekürzter Ausschnitt</p>
+            <pre><code class="language-php" data-trim>
+          final class ReplaceNestedArrayItemRector extends AbstractRector
+          {
+              public function getNodeTypes(): array
+              {
+                  return [Assign::class];
+              }
+
+              public function refactor(Node $node): ?Node
+              {
+                  if (!$node instanceof Assign) {
+                      return null;
+                  }
+
+                  // Verarbeitung auf der nächsten Folie
+              }
+          }
+          </code></pre>
+            <p><code>getNodeTypes()</code> wählt <code>Assign</code>. <code>instanceof</code> prüft den Typ in <code>refactor()</code>.
+            </p>
+            <aside class="notes"></aside>
+            <p class="meta footnote">Regel suchen: <a href="https://getrector.com/documentation/custom-rule">https://getrector.com/documentation/custom-rule</a>
+            </p>
+        </section>
+        <section id="nested-refactor">
+            <h2>Der gemeinsame Punkt: <code>Assign</code></h2>
+            <div class="cols" style="grid-template-columns: 1.8fr 1fr">
+          <pre class="code-narrow"><code class="language-php" data-trim data-noescape
+                                         data-line-numbers="|3-6|8-11|13-17|19-28" data-fragment-index="0">
+          public function refactor(Node $node): ?Node
+          {
+              if (!$node instanceof Assign)
+              {
+                  return null;
+              }
+
+              if ($node-&gt;var instanceof ArrayDimFetch)
+              {
+                  $arrParentKeyPath = $this-&gt;findParentKeys($node-&gt;var);
+                  $childTraversal = $this-&gt;createChildTraversalPath($node-&gt;expr);
+
+                  foreach ($this-&gt;configuration as $configuration)
+                  {
+                      $targetPath = explode('.', $configuration-&gt;getTargetPath());
+
+                      $childrenKeyPaths = $this-&gt;matchPaths($targetPath, $arrParentKeyPath, $childTraversal);
+
+                      if ([] !== $childrenKeyPaths)
+                      {
+                          $oldValue = $configuration-&gt;getOldValue();
+                          $newValue = $configuration-&gt;getNewValue();
+
+                          foreach ($childrenKeyPaths as $childrenKeyPath)
+                          {
+                              $this-&gt;replaceTargetNodeValue($node, $childrenKeyPath, $configuration, $oldValue, $newValue);
+                          }
+                      }
+                  }
+              }
+
+              return null;
+          }
+          </code></pre>
+                <ol class="steps">
+                    <li class="fragment" data-fragment-index="0"><code>instanceof Assign</code>: nur Zuweisungen
+                        interessieren, alles andere → <code>null</code> (nichts ändern)
+                    </li>
+                    <li class="fragment" data-fragment-index="1">Links vom <code>=</code> ein Array-Zugriff? Dann Pfad
+                        links (<code>findParentKeys</code>) und Baum rechts bestimmen
+                    </li>
+                    <li class="fragment" data-fragment-index="2">Für jede konfigurierte Regel: Pfad mit Wildcards
+                        abgleichen (<code>matchPaths</code>)
+                    </li>
+                    <li class="fragment" data-fragment-index="3">Treffer → alten Wert gegen den neuen tauschen (<code>replaceTargetNodeValue</code>)
+                    </li>
+                </ol>
+            </div>
+            <aside class="notes"></aside>
+            <p class="meta footnote">Vor 0.17 kein Problem, danach: <a
+                    href="https://getrector.com/blog/rector-017-brings-more-robust-and-lighter-node-tree">rector-017-brings-more-robust-and-lighter-node-tree</a>
+            </p>
+        </section>
+        <section id="nested-parent-keys">
+            <h2>Links vom <code>=</code>: <code>findParentKeys()</code></h2>
+            <div class="cols" style="grid-template-columns: 1.8fr 1fr">
+          <pre class="code-narrow"><code class="language-php" data-trim data-noescape data-line-numbers="|5-13|15"
+                                         data-fragment-index="0">
+          private function findParentKeys(ArrayDimFetch $arrayDimFetch): array
+          {
+              $keys = [];
+
+              while ($arrayDimFetch instanceof ArrayDimFetch)
+              {
+                  if ($arrayDimFetch-&gt;dim instanceof String_)
+                  {
+                      $keys[] = $arrayDimFetch-&gt;dim-&gt;value;
+                  }
+
+                  $arrayDimFetch = $arrayDimFetch-&gt;var;
+              }
+
+              return array_reverse($keys);
+          }
+          </code></pre>
+                <ol class="steps">
+                    <li class="fragment" data-fragment-index="0">Schleife: solange der Ausdruck ein Array-Zugriff ist,
+                        den String-Schlüssel merken und eine Ebene nach innen gehen
+                    </li>
+                    <li class="fragment" data-fragment-index="1">Reihenfolge drehen: von außen nach innen wird innen
+                        nach außen
+                    </li>
+                </ol>
+            </div>
+            <p class="meta"><code>$GLOBALS['TL_DCA']['tl_foo']['fields']</code> → <code>['TL_DCA', 'tl_foo',
+                'fields']</code></p>
+            <aside class="notes"></aside>
+        </section>
+
+        <!-- 3 · Twig-Vorgaben -->
+
+        <section id="twig-problem">
+            <p class="kicker">Kapitel 3 · Twig-Vorgaben</p>
+            <h2>3. Problem: Twig-Vorgaben gehen unter</h2>
+            <ul>
+                <li>Im Framework nutzen wir es konsequent für Templates.</li>
+                <li class="fragment">Die ähnliche Syntax von <strong>Jinja2</strong>, der Template-Engine für Python,
+                    liefert oft unpassende Muster.
+                </li>
+                <li class="fragment">Der einfache Ausweg bei HTML: <code class="danger">|raw</code>. Damit fällt das
+                    Escaping weg.
+                </li>
+            </ul>
+            <aside class="notes"></aside>
+        </section>
+        <section id="twig-rules">
+            <h2>Unsere Regeln im Twig-CS-Fixer</h2>
+            <p class="meta">Melden oder korrigieren, bevor der nächste Review-Kommentar entsteht.</p>
+            <table class="rules">
+                <tr>
+                    <td><code>VariableNameRule</code></td>
+                    <td>→ Variablennamen in <code>snake_case</code></td>
+                </tr>
+                <tr>
+                    <td><code>HtmlAttributesVariableNameRule</code></td>
+                    <td>→ <code>attrs()</code> heißt immer <code>…_attributes</code></td>
+                </tr>
+                <tr>
+                    <td><code>ForbiddenRawFilterRule</code></td>
+                    <td>→ kein <code>|raw</code> (XSS), Ausnahmen nur für Contao Legacy</td>
+                </tr>
+                <tr>
+                    <td><code>ForbiddenBlockRule</code></td>
+                    <td>→ kein <code>{% embed %}</code> (Ausnahmen konfigurierbar)</td>
+                </tr>
+                <tr>
+                    <td><code>ComponentIncludeRule</code></td>
+                    <td>→ Komponenten mit <code>{% use %}</code> statt <code>include()</code> mit Variablen</td>
+                </tr>
+                <tr>
+                    <td><code>SetUnderscoreRule</code></td>
+                    <td>→ <code>{% do … %}</code> statt <code>{% set _ = … %}</code></td>
+                </tr>
+                <tr>
+                    <td><code>ImportSelfRule</code></td>
+                    <td>→ <code>_self.macro()</code> statt <code>{% import _self %}</code></td>
+                </tr>
+                <tr>
+                    <td><code>AttrsHookMergeRule</code></td>
+                    <td>→ Attribute ergänzen, nicht ersetzen</td>
+                </tr>
+                <tr>
+                    <td><code>AddClassConditionRule</code></td>
+                    <td>→ <code>card-</code> ohne Wert gibt es nicht: Klasse nur mit Bedingung</td>
+                </tr>
+            </table>
+            <p class="fragment">Jede Regel ist ein Review-Kommentar, den man nie wieder schreiben muss.</p>
+        </section>
+        <section id="twig-how">
+            <h2>So arbeitet Twig-CS-Fixer</h2>
+            <p class="meta"><strong>CS</strong> = Coding Standard, wie bei ECS</p>
+            <table class="rules overview">
+                <tr>
+                    <th></th>
+                    <th>Datenstruktur</th>
+                    <th>Eigenschaft</th>
+                </tr>
+                <tr>
+                    <td>Rector</td>
+                    <td>AST: Baum aus Knoten</td>
+                    <td>Leerzeichen und Formatierung weg</td>
+                </tr>
+                <tr>
+                    <td>Twig-CS-Fixer</td>
+                    <td>Tokens: flache Liste</td>
+                    <td>jedes Zeichen bleibt, auch Leerzeichen</td>
+                </tr>
+            </table>
+            <p class="fragment" style="padding-top:30px">Linter und Fixer zugleich.</p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="twig-tokens">
+            <h2>Ein Template als Tokens</h2>
+            <p class="meta"><code>{{ data.text|raw }}</code>, vereinfacht</p>
+            <div class="cols" style="grid-template-columns: 1.2fr 1fr">
+          <pre class="code-narrow"><code class="language-plaintext" data-trim data-noescape
+                                         data-line-numbers="|1|2|3-4|5" data-fragment-index="0" style="font-size:2em">
+          {{          Ausgabe beginnt
+          data.text   Ausdruck
+          |           Filter beginnt
+          raw         FILTER_NAME_TYPE
+          }}          Ausgabe endet
+          </code></pre>
+                <ol class="steps">
+                    <li class="fragment" data-fragment-index="0">Eine Ausgabe beginnt</li>
+                    <li class="fragment" data-fragment-index="1"><code>data.text</code> wird ausgegeben</li>
+                    <li class="fragment" data-fragment-index="2">Nach <code>|</code> steht der Filtername
+                        <code>raw</code></li>
+                    <li class="fragment" data-fragment-index="3">Die Ausgabe endet</li>
+                </ol>
+            </div>
+            <aside class="notes"></aside>
+        </section>
+        <section id="twig-recipe">
+            <h2>Gleiches Prinzip, andere Schnittstelle</h2>
+            <table class="rules overview">
+                <tr>
+                    <th>Rector</th>
+                    <td><code>getNodeTypes()</code> wählt Knoten; <code>refactor()</code> verarbeitet sie</td>
+                </tr>
+                <tr>
+                    <th>Twig-CS-Fixer</th>
+                    <td><code>process()</code> prüft Tokens; <code>addWarning()</code> meldet <code>|raw</code></td>
+                </tr>
+            </table>
+            <p class="meta">Beides sind Regeln als Klassen. Die konkrete Twig-Regel folgt jetzt.</p>
+        </section>
+        <section id="set-underscore-detect" data-visibility="hidden">
+            <h2><code>SetUnderscoreRule</code>: erkennen</h2>
+            <ol class="meta">
+                <li>Ist der Token ein <code>set</code>?</li>
+                <li>Ist das nächste Token (ohne Leerzeichen) die Variable <code>_</code>?</li>
+                <li>Folgt danach ein <code>=</code>?</li>
+            </ol>
+            <pre class="code-tall"><code class="language-php" data-trim data-noescape
+                                         data-line-numbers="|5-7|9-13|15-19">
+          protected function process(int $tokenIndex, Tokens $tokens): void
+          {
+              $token = $tokens-&gt;get($tokenIndex);
+
+              if (!$token-&gt;isMatching(Token::BLOCK_NAME_TYPE, 'set')) {
+                  return;
+              }
+
+              $nameIndex = $tokens-&gt;findNext(Token::INDENT_TOKENS, $tokenIndex + 1, exclude: true);
+
+              if (false === $nameIndex || !$tokens-&gt;get($nameIndex)-&gt;isMatching(Token::NAME_TYPE, '_')) {
+                  return;
+              }
+
+              $equalIndex = $tokens-&gt;findNext(Token::INDENT_TOKENS, $nameIndex + 1, exclude: true);
+
+              if (false === $equalIndex || !$tokens-&gt;get($equalIndex)-&gt;isMatching(Token::OPERATOR_TYPE, '=')) {
+                  return;
+              }
+          }
+          </code></pre>
+            <aside class="notes"></aside>
+        </section>
+        <section id="set-underscore-fix" data-visibility="hidden">
+            <h2><code>SetUnderscoreRule</code>: melden und fixen</h2>
+            <p class="meta">Gekürzt, der Rest der Methode steht auf der Folie davor.</p>
+            <pre class="code-tall"><code class="language-php" data-trim data-noescape
+                                         data-line-numbers="1|3-5|7|9-10|12-14|16">
+          $fixer = $this-&gt;addFixableError('Use "{% do … %}" instead of "{% set _ = … %}".', $token);
+
+          if (null === $fixer) {
+              return;
+          }
+
+          $valueIndex = $tokens-&gt;findNext(Token::INDENT_TOKENS, $equalIndex + 1, exclude: true);
+
+          $fixer-&gt;beginChangeSet();
+          $fixer-&gt;replaceToken($tokenIndex, 'do');
+
+          for ($i = $nameIndex; $i &lt; $valueIndex; ++$i) {
+              $fixer-&gt;replaceToken($i, '');
+          }
+
+          $fixer-&gt;endChangeSet();
+          </code></pre>
+            <aside class="notes">addFixableError meldet und gibt einen Fixer zurück.</aside>
+        </section>
+        <section id="twig-test" data-visibility="hidden">
+            <h2>Getestet mit Fixtures</h2>
+
+            <pre class="code-tall"><code class="language-twig" data-trim data-line-numbers="1-2|3-5">
+          {% set _ = figure.media.attributes.set('poster', fallback_poster) %}
+          {%- set _ = a.b() -%}
+          {% set _, x = [1, 2] %}
+          {% set _ %}captured{% endset %}
+          {% set foo = bar.baz() %}
+          </code></pre>
+            <pre class="code-tall"><code class="language-php" data-trim>
+          $this->checkRule(new SetUnderscoreRule(), [
+              'SetUnderscore.Error:1:4' => 'Use "{% do … %}" …',
+              'SetUnderscore.Error:2:5' => 'Use "{% do … %}" …',
+          ]);
+          </code></pre>
+            <p class="fragment">Zeilen 1–2 müssen anschlagen. Zeilen 3–5 <strong>nicht</strong>: die Negativfälle sind
+                der halbe Test.</p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="import-self-code" data-visibility="hidden">
+            <h2><code>ImportSelfRule</code>: nur melden</h2>
+            <p class="meta"><code>AbstractRule</code> statt <code>AbstractFixableRule</code>: <code>addWarning()</code>,
+                kein Fixer.</p>
+            <pre class="code-tall"><code class="language-php" data-trim data-noescape
+                                         data-line-numbers="|5-7|9-13|15-18">
+          protected function process(int $tokenIndex, Tokens $tokens): void
+          {
+              $token = $tokens-&gt;get($tokenIndex);
+
+              if (!$token-&gt;isMatching(Token::BLOCK_NAME_TYPE, ['import', 'from'])) {
+                  return;
+              }
+
+              $sourceIndex = $tokens-&gt;findNext(Token::INDENT_TOKENS, $tokenIndex + 1, exclude: true);
+
+              if (false === $sourceIndex || !$tokens-&gt;get($sourceIndex)-&gt;isMatching(Token::NAME_TYPE, '_self')) {
+                  return;
+              }
+
+              $this-&gt;addWarning(
+                  \sprintf('Macros of the current template are auto-imported. Remove "{%% %s _self … %%}" and call "_self.macro()" directly.', $token-&gt;getValue()),
+                  $token,
+              );
+          }
+          </code></pre>
+            <aside class="notes"></aside>
+        </section>
+        <section id="twig-raw">
+            <h2><code>|raw</code>: Beispiel und Regel</h2>
+            <div class="cols" style="grid-template-columns: 0.8fr 1.7fr">
+                <div>
+                    <p class="meta">Im Template</p>
+                    <pre><code class="language-twig" data-trim>
+          {{ data.text|raw }}
+              </code></pre>
+                    <p><code>|raw</code> schaltet das Escaping ab. Steht <code>&lt;script&gt;</code> im Feld, läuft es
+                        im Browser.</p>
+                </div>
+                <div>
+                    <p class="meta"><code>ForbiddenRawFilterRule</code>, gekürzt</p>
+                    <pre class="code-tall"><code class="language-php" data-trim data-noescape>
+          protected function process(int $tokenIndex, Tokens $tokens): void
+          {
+              $token = $tokens-&gt;get($tokenIndex);
+              if (!$token-&gt;isMatching(Token::FILTER_NAME_TYPE, 'raw')) {
+                  return;
+              }
+
+              // Konfigurierte Ausnahmen werden vorher geprüft.
+              $this-&gt;addWarning('You should not use the |raw filter. …', $token);
+          }
+              </code></pre>
+                </div>
+            </div>
+            <aside class="notes"></aside>
+        </section>
+        <section id="twig-raw-fix">
+            <h2><code>|raw</code> ist verboten</h2>
+            <pre data-id="code"><code class="language-twig" data-trim>
+          {{ data.text|insert_tag }}
+          {{ data.html|insert_tag_raw }}
+          </code></pre>
+            <ul>
+                <li class="fragment">Editor-Text → <code>|insert_tag</code></li>
+                <li class="fragment">HTML-Felder → <code>|insert_tag_raw</code> <span class="meta">(Contao 5.7, ab Contao 6: <code>|insert_tag_html</code>)</span>
+                </li>
+            </ul>
+            <aside class="notes"></aside>
+        </section>
+        <section id="twig-attrs" data-visibility="hidden" data-auto-animate>
+            <h2><code>AttrsHookMergeRule</code></h2>
+            <pre data-id="code"><code class="language-twig" data-trim>
+  {% set card_attributes = attrs().addClass('card') %}
+          </code></pre>
+            <aside class="notes"></aside>
+        </section>
+        <section id="twig-attrs-fix" data-visibility="hidden" data-auto-animate>
+            <h2><code>AttrsHookMergeRule</code></h2>
+            <pre data-id="code"><code class="language-twig" data-trim>
+  {% set card_attributes = attrs(card_attributes|default).addClass('card') %}
+          </code></pre>
+            <p class="fragment">Das eingehende <code>card_attributes</code> wurde verschluckt. Variable und Namen
+                behalten.</p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="twig-attrs-code" data-visibility="hidden">
+            <h2><code>AttrsHookMergeRule</code>: im Ausdruck suchen</h2>
+            <p class="meta">Gekürzt. Vorher geprüft: <code>{% set x = attrs(</code>, und nicht in <code>for</code> oder
+                <code>macro</code>.</p>
+            <pre class="code-tall"><code class="language-php" data-trim data-noescape data-line-numbers="1-2|4-9|11-14">
+          $name = $tokens-&gt;get($nameIndex)-&gt;getValue();
+          $endIndex = $tokens-&gt;findNext(Token::BLOCK_END_TYPE, $valueIndex);
+
+          for ($i = $valueIndex + 1; $i &lt; $endIndex; ++$i) {
+              if ($tokens-&gt;get($i)-&gt;isMatching(Token::NAME_TYPE, $name)
+                  &amp;&amp; !$tokens-&gt;get($i - 1)-&gt;isMatching(Token::OPERATOR_TYPE, ['.', '?.'])
+              ) {
+                  return;
+              }
+          }
+
+          $this-&gt;addWarning(
+              \sprintf('"%1$s" replaces the hook; use "attrs(%1$s|default)" or ".mergeWith(%1$s|default)".', $name),
+              $tokens-&gt;get($nameIndex),
+          );
+          </code></pre>
+            <aside class="notes"></aside>
+        </section>
+
+        <!-- 4 · Überprüfbar -->
+
+        <section id="check-overview">
+            <p class="kicker">Kapitel 4 · Überprüfbar</p>
+            <h2>Ist der Code auch korrekt?</h2>
+            <div class="cols" style="--cols: 3">
+                <div class="card">
+                    <span class="pill">Mechanisch</span>
+                    <p class="meta">ECS · Rector · Twig-CS-Fixer</p>
+                </div>
+                <div class="card">
+                    <span class="pill">Überprüfbar</span>
+                    <p>Eine mögliche Fehlerstelle im Code finden.</p>
+                    <p class="meta">PHPStan · Twig-CS-Fixer</p>
+                </div>
+                <div class="card">
+                    <span class="pill">Kontextuell</span>
+                    <p class="meta">Mensch · AGENTS.md · Skills</p>
+                </div>
+            </div>
+            <aside class="notes"></aside>
+        </section>
+        <section id="phpstan">
+            <p class="kicker">PHPStan · Praxisbeispiel</p>
+            <h2>DELETE-Import</h2>
+            <p class="meta">Gekürzter Code</p>
+            <pre class="code-tall"><code class="language-php" data-trim style="font-size: 1.5em">
+          $objFoobar = FoobarModel::findOneBy($arrColumns, $arrValues);
+
+          if ($preventDelete)
+          {
+              continue;
+          }
+
+          $this->deleteFoobarImages($objFoobar, $objCux);
+          $objFoobar->delete();
+
+          // In deleteFoobarImages():
+          $deleteFolder = $this->objFilesFolder->path . '/'
+              . $objCux->quux . '/'
+              . $objFoobar->{$this->bar->baz};
+          Files::getInstance()->rrdir($deleteFolder);
+          </code></pre>
+            <aside class="notes"></aside>
+        </section>
+        <section id="phpstan-fix">
+            <h2>Der Fix</h2>
+            <p class="meta">Nur löschen, wenn der Datensatz existiert</p>
+            <pre class="code-tall"><code class="language-php" data-trim style="font-size: 1.5em">
+          if (null !== $objFoobar) {
+              $this->deleteFoobarImages($objFoobar, $objCux);
+              $objFoobar->delete();
+          }
+
+          // Zusätzlich in deleteFoobarImages():
+          if (null === $objFoobar || null === $objCux) {
+              return;
+          }
+          </code></pre>
+            <aside class="notes"></aside>
+        </section>
+        <section id="phpstan-levels">
+            <h2>PHPStan: je höher, desto genauer</h2>
+            <p class="meta">Die Level bauen aufeinander auf. Beispiele, stark vereinfacht:</p>
+            <table class="rules">
+                <tr>
+                    <td><strong>0</strong></td>
+                    <td><code>UnknownClass::run()</code> → unbekannte Klasse</td>
+                </tr>
+                <tr>
+                    <td><strong>5</strong></td>
+                    <td><code>greet(42)</code> → erwartet wird <code>string</code></td>
+                </tr>
+                <tr>
+                    <td><strong>6</strong></td>
+                    <td><code>function greet($name)</code> → Parametertyp fehlt</td>
+                </tr>
+                <tr>
+                    <td><strong>8</strong></td>
+                    <td><code>findUser()->getName()</code> → <code>findUser()</code> kann <code>null</code> liefern</td>
+                </tr>
+                <tr>
+                    <td><strong>10</strong></td>
+                    <td>Auch ungetyptes <code>mixed</code> wird gemeldet</td>
+                </tr>
+            </table>
+            <p class="meta footnote">Quelle: <a href="https://phpstan.org/user-guide/rule-levels">phpstan.org/user-guide/rule-levels</a>
+            </p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="ci">
+            <h2>GitHub Actions im Pull Request</h2>
+            <p class="meta">Die Prüfungen laufen automatisch bei jedem PR.</p>
+            <ol class="pipeline">
+                <li class="fragment check">ECS</li>
+                <li class="fragment check">Rector</li>
+                <li class="fragment check">PHPStan</li>
+                <li class="fragment check fail">Twig-CS-Fixer</li>
+                <li class="fragment check">Biome · Stylelint</li>
+            </ol>
+            <p class="fragment"><span class="badge red">CI ✘ failing</span></p>
+            <p class="fragment">Der Check meldet den Verstoß; der Code wird lokal korrigiert.</p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="ci-fail">
+            <h2>Was, wenn die KI den Fehler sieht?</h2>
+            <div class="badge-slot">
+                <span class="badge red fragment fade-out" data-fragment-index="5">CI ✘ failing</span>
+                <span class="badge fragment" data-fragment-index="5">CI ✔ passing</span>
+            </div>
+            <pre><code class="language-plaintext" data-trim>
+          GitHub Actions · Pull Request
+           ✔ ECS    ✔ Rector    ✔ PHPStan
+           ✘ Twig-CS-Fixer   You should not use the |raw filter. …
+          </code></pre>
+            <p class="fragment" data-fragment-index="0">🤖 „Dann schalte ich die Regel ab …“ <span class="fragment pop"
+                                                                                                  data-fragment-index="1"><strong>⛔ Darf er nicht.</strong></span>
+            </p>
+            <p class="fragment" data-fragment-index="2">🤖 „Dann schreibe ich die Regel neu!“ <span class="fragment pop"
+                                                                                                   data-fragment-index="3"><strong>⛔ Darf er nicht.</strong> 😢</span>
+            </p>
+            <p class="fragment" data-fragment-index="4">🤖 „Na gut, dann passe ich den Code an.“ Im Template:
+                <code>|raw</code> → <code>|insert_tag</code></p>
+            <pre class="fragment" data-fragment-index="5"><code class="language-plaintext" data-trim>
+          GitHub Actions · Pull Request
+           ✔ ECS    ✔ Rector    ✔ PHPStan    ✔ Twig-CS-Fixer
+          </code></pre>
+            <p class="fragment" data-fragment-index="6"><strong>Grün. Weiter.</strong></p>
+            <aside class="notes"></aside>
+        </section>
+
+        <!-- 5 · KI und Kontext -->
+
+        <section id="determinism">
+            <p class="kicker">Kapitel 5 · KI und Kontext</p>
+            <h2>Determinismus</h2>
+            <p class="meta">Gleiche Eingabe, <strong>immer</strong> gleiches Ergebnis.</p>
+            <div class="cols">
+                <div class="card fragment">
+                    <span class="pill">Deterministisch</span>
+                    <p>Das Ergebnis ist durch die Eingabe <strong>eindeutig festgelegt</strong>.</p>
+                    <pre><code class="language-php" data-trim>
+add(2, 3); // 5
+add(2, 3); // 5
+add(2, 3); // 5
+              </code></pre>
+                </div>
+                <div class="card fragment">
+                    <span class="pill">Indeterministisch</span>
+                    <p>Gleiche Eingabe, Ergebnis <strong>kann variieren</strong>.</p>
+                    <pre><code class="language-php" data-trim>
+random_int(1, 6); // 4
+random_int(1, 6); // 1
+random_int(1, 6); // 6
+              </code></pre>
+                </div>
+            </div>
+        </section>
+        <section id="same-prompt">
+            <h2>Ein LLM ist nicht deterministisch</h2>
+            <p class="meta">„Googlemaps add permissions for maps“, viermal</p>
+            <div class="cols" style="gap: 16px 40px;">
+            <pre class="code-narrow"><code class="language-php" data-trim>
+// Lauf 1: PaletteManipulator
+$GLOBALS['TL_PERMISSIONS'][] = 'dlh_googlemapss';
+$GLOBALS['TL_PERMISSIONS'][] = 'dlh_googlemapsp';
+
+PaletteManipulator::create()
+    ->addLegend('dlh_googlemaps_legend', 'forms_legend', …)
+    ->addField(['dlh_googlemapss', 'dlh_googlemapsp'], …)
+    ->applyToPalette('extend', 'tl_user');
+
+$GLOBALS['TL_DCA']['tl_user']['fields']['dlh_googlemapss'] = [
+    'inputType' => 'checkbox', 'foreignKey' => 'tl_dlh_googlemaps.title', …
+];
+            </code></pre>
+                <pre class="code-narrow"><code class="language-php" data-trim>
+// Lauf 2: nur registrieren
+// Maps the user can access
+$GLOBALS['TL_PERMISSIONS'][] = 'dlh_googlemapss';
+
+// Map operations: create, delete
+$GLOBALS['TL_PERMISSIONS'][] = 'dlh_googlemapsp';
+            </code></pre>
+                <pre class="code-narrow"><code class="language-php" data-trim>
+// Lauf 3: str_replace + array()
+$GLOBALS['TL_PERMISSIONS'][] = 'dlh_googlemapss';
+$GLOBALS['TL_PERMISSIONS'][] = 'dlh_googlemapsp';
+
+$GLOBALS['TL_DCA']['tl_user']['palettes']['extend'] = str_replace('formp;',
+    'formp;{dlh_googlemaps_legend},dlh_googlemapss,dlh_googlemapsp;', …);
+
+foreach (array('tl_user', 'tl_user_group') as $table) {
+    $GLOBALS['TL_DCA'][$table]['fields']['dlh_googlemapss'] = array(…);
+}
+            </code></pre>
+                <pre class="code-narrow"><code class="language-php" data-trim>
+// Lauf 4: Doku als return-Array
+return [
+    'googlemaps' => [
+        'dlh_googlemapss' => ['description' => 'Allowed maps', …],
+        'dlh_googlemapsp' => ['options' => ['create', 'delete'], …],
+        'checks' => [
+            'create' => 'requires dlh_googlemapsp: create',
+            'delete' => 'map ID in dlh_googlemapss + …: delete',
+        ],
+    ],
+];
+            </code></pre>
+            </div>
+            <aside class="notes"></aside>
+        </section>
+        <section id="llm-not-deterministic">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:40px; width:100%;">
+                <div style="flex:1; text-align:left;">
+                    <h2>Warum?</h2>
+                    <ul>
+                        <li class="fragment" data-fragment-index="0">Für jedes nächste <strong>Token</strong> berechnet
+                            das Modell Wahrscheinlichkeiten.
+                        </li>
+                        <li class="fragment" data-fragment-index="1"><strong>Temperature</strong> steuert die Auswahl:
+                            höher = mehr Varianten
+                        </li>
+                    </ul>
+                    <p class="fragment" data-fragment-index="2"><strong>Bei Temperature 0 = immer* gleich.</strong></p>
+                </div>
+                <img class="fragment" data-fragment-index="2" src="images/infinite-loop.gif"
+                     alt="Sheldon Cooper in einer Endlosschleife"
+                     style="flex:0 0 auto; max-height:480px; max-width:45%; margin:0; border-radius:12px;">
+            </div>
+            <aside class="notes"></aside>
+        </section>
+
+        <!-- Kapitel 5 fortgesetzt: Projektkontext -->
+
+        <section id="agents-md">
+            <p class="kicker">Projektkontext</p>
+            <h2>Was keine Prüfung entscheiden kann</h2>
+            <div class="cols" style="--cols: 3">
+                <div class="card">
+                    <span class="pill">Mechanisch</span>
+                    <p class="meta">ECS · Rector · Twig-CS-Fixer</p>
+                </div>
+                <div class="card">
+                    <span class="pill">Überprüfbar</span>
+                    <p class="meta">PHPStan · Twig-CS-Fixer</p>
+                </div>
+                <div class="card">
+                    <span class="pill">Kontextuell</span>
+                    <p>Verstehen, was im Projekt gewollt ist.</p>
+                    <p class="meta">Mensch · AGENTS.md · Skills</p>
+                </div>
+            </div>
+            <p class="fragment">Architektur? Was darf sich ändern?</p>
+        </section>
+        <section id="vague-prompt">
+            <h2>Ohne Projektkontext: drei Anläufe</h2>
+            <p class="meta">„Hi, ich brauche Sicherheit für meine Extension.“</p>
+            <ul>
+                <li class="fragment">→ Contao-4-Permissions, weil es noch keine gab. <em>Hier hören viele auf.</em></li>
+                <li class="fragment">„Nein, Contao 5 bitte.“ → Voter, aber immer noch <code>$user->hasAccess()</code>
+                </li>
+                <li class="fragment">„Auch Contao 6.“ → erst jetzt der <code>AccessDecisionManager</code></li>
+            </ul>
+            <aside class="notes"></aside>
+        </section>
+        <section id="vague-prompt-c4">
+            <h2>Antwort 1: Contao 4</h2>
+            <pre class="code-narrow"><code class="language-php" data-trim>
+$GLOBALS['TL_PERMISSIONS'][] = 'dlh_googlemapss';
+$GLOBALS['TL_PERMISSIONS'][] = 'dlh_googlemapsp';
+
+$GLOBALS['TL_DCA']['tl_dlh_googlemaps']['config']['onload_callback'][] =
+    ['tl_dlh_googlemaps', 'checkPermission'];
+
+public function checkPermission(): void
+{
+    if ($this->User->isAdmin) {
+        return;
+    }
+
+    if (!$this->User->hasAccess('create', 'dlh_googlemapsp')) { … }
+    if (!\in_array(Input::get('id'), $this->User->dlh_googlemapss)) { … }
+}
+          </code></pre>
+            <aside class="notes"></aside>
+        </section>
+        <section id="vague-prompt-c5">
+            <h2>Antwort 2: „Nein, Contao 5 bitte“</h2>
+            <pre class="code-narrow"><code class="language-php" data-trim>
+class MapAccessVoter extends AbstractDataContainerVoter
+{
+    protected function hasAccess(TokenInterface $token, … $action): bool
+    {
+        $user = $token->getUser();
+
+        if (!$user instanceof BackendUser) {
+            return false;
+        }
+
+        if ($user->isAdmin) {
+            return true;
+        }
+
+        return match (true) {
+            $action instanceof CreateAction => $user->hasAccess('create', 'dlh_googlemapsp'),
+            $action instanceof DeleteAction => $user->hasAccess('delete', 'dlh_googlemapsp') && …,
+            default => \in_array((int) $mapId, (array) $user->dlh_googlemapss, true),
+        };
+    }
+}
+          </code></pre>
+            <aside class="notes"></aside>
+        </section>
+        <section id="vague-prompt-c6">
+            <h2>Antwort 3: „Auch Contao 6“</h2>
+            <pre class="code-narrow"><code class="language-php" data-trim>
+class MapAccessVoter extends AbstractDataContainerVoter
+{
+    public function __construct(
+        private readonly AccessDecisionManagerInterface $accessDecisionManager,
+    ) {}
+
+    protected function hasAccess(TokenInterface $token, … $action): bool
+    {
+        if (!$this->accessDecisionManager->decide($token, [ContaoCorePermissions::USER_CAN_ACCESS_MODULE], 'dlh_googlemaps')) {
+            return false;
+        }
+
+        return match (true) {
+            $action instanceof CreateAction => $this->accessDecisionManager->decide($token, ['contao_user.dlh_googlemapsp'], 'create'),
+            $action instanceof DeleteAction => $this->accessDecisionManager->decide($token, ['contao_user.dlh_googlemapsp'], 'delete') && …,
+            default => $this->accessDecisionManager->decide($token, ['contao_user.dlh_googlemapss'], (int) $mapId),
+        };
+    }
+}
+          </code></pre>
+            <aside class="notes"></aside>
+        </section>
+
+        <section id="skill">
+            <h2>Was sollten <code>AGENTS.md</code> und eine <code>SKILL.md</code> klären?</h2>
+            <ul>
+                <li>Was gibt es im Framework bereits?</li>
+                <li class="fragment">Welche bestehenden Werte dürfen verändert werden?</li>
+                <li class="fragment">Welche Projektbefehle und Grenzen gelten?</li>
+            </ul>
+            <aside class="notes"></aside>
+        </section>
+        <section id="moscow">
+            <h2>MoSCoW vor dem ersten Edit</h2>
+            <p class="meta">Aufgabe: „Bau mir eine Card.“</p>
+            <div class="cols" style="--cols: 4">
+                <div class="card"><span class="pill">Must</span>
+                    <p>wird gebaut</p>
+                    <p class="meta">Card-Komponente mit Titel, Text, Link</p></div>
+                <div class="card"><span class="pill">Should</span>
+                    <p>gehört zum Must</p>
+                    <p class="meta">Style-Optionen der Card</p></div>
+                <div class="card"><span class="pill">Could</span>
+                    <p>nur vorschlagen</p>
+                    <p class="meta">Hover-Animation, weitere Varianten</p></div>
+                <div class="card"><span class="pill">Won't</span>
+                    <p>benennen, nicht bauen</p>
+                    <p class="meta">bestehende Grid-Komponente umbauen</p></div>
+            </div>
+            <p class="fragment">Erst Bestand prüfen: „Wo gibt es das schon?“ Dann fragen statt annehmen.</p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="skill-practices">
+            <h2>Skills</h2>
+            <ul>
+                <li><code>description</code> ist der Auslösemechanismus. Leitfaden von Anthropic zu Skills [1]</li>
+                <li>Weitere <code>.md</code>: kompakt halten, längere (100+ Zeilen) Referenzen mit Inhaltsverzeichnis in
+                    <code>/references/</code></li>
+                <li class="fragment" data-fragment-index="0">MUST / NEVER / ASK als Grenzen (kein Muss, aber es hilft),
+                    jeweils mit einem Satz <strong>warum</strong></li>
+                <li class="fragment" data-fragment-index="0">Konkrete Pfade und Befehle statt Prinzipien</li>
+                <li class="fragment" data-fragment-index="1"><strong>Negative Beispiele erklären Grenzen.</strong>
+                    Toolchain prüft konkrete Verstöße.
+                </li>
+                <li class="fragment" data-fragment-index="1">Was sich automatisieren lässt → in Skripte: <strong>spart
+                    Tokens, Zeit und Wasser</strong></li>
+            </ul>
+            <p class="fragment meta" data-fragment-index="1">Mehr dazu gleich: der eigene Lauf.</p>
+            <p class="meta footnote">[1] <a
+                    href="https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices">platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices</a>
+            </p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="learnings" data-visibility="hidden">
+            <h2>Learnings: echte Vorfälle → Regeln</h2>
+            <ul>
+                <li class="fragment"><code>btn-wide</code> entfernt. Enum und Test wurden im selben Schritt geändert,
+                    die Warnung kam danach.
+                </li>
+                <li class="fragment"><code>data.backgroundColor</code> bei einer „Verbesserung“ gelöscht</li>
+                <li class="fragment"><code>{% embed %}</code> pro Listeneintrag, Kommentare, die den Code nacherzählen
+                </li>
+            </ul>
+            <p class="fragment"><strong>Negative Beispiele erklären die Grenze. Checks prüfen sie.</strong></p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="ci-permission">
+            <h2>Die wichtigste Regel in Contao-KISS</h2>
+            <div class="cols" style="grid-template-columns: 1fr 1.2fr">
+                <div>
+                    <p>Der Agent fasst CI und Tests nicht an.</p>
+                    <ul>
+                        <li class="fragment">Rote Checks sind keine Erlaubnis. „Mach die Tests grün“ auch nicht.</li>
+                        <li class="fragment">Nur mit exakt <code>YES, HERE IS PERMISSION TO DO SO</code></li>
+                        <li class="fragment">Die Ausnahmeliste für <code>|raw</code> heißt <code>SHAME_ON_YOU</code> 😉
+                        </li>
+                    </ul>
+                    <blockquote class="fragment big">Fix the code, never the check.</blockquote>
+                </div>
+                <div>
+                    <p class="meta">aus dem Skill <code>kiss-framework-extend</code></p>
+                    <pre class="code-tall"><code class="language-plaintext" data-trim data-noescape>
+          ABSOLUTELY NO EDIT to any of these without explicit
+          written permission IN THE CURRENT TASK.
+
+          A failing lint or a failing test is NOT permission.
+          "Make the lint pass", "make the tests green" or
+          "fix CI" is NOT permission.
+
+          Fix the code, never the check.
+              </code></pre>
+                    <p class="meta fragment">aus <code>.twig-cs-fixer.php</code></p>
+                    <pre class="code-tall fragment"><code class="language-php" data-trim data-noescape>
+          // Templates that bypass the |raw ban
+          const SHAME_ON_YOU = [];
+
+          $ruleset-&gt;addRule(new ForbiddenRawFilterRule(ignore: array_merge(
+              ['mod_breadcrumb.html.twig', 'mod_newslist.html.twig', 'be_tinyMCE.html.twig'],
+              SHAME_ON_YOU,
+          )));
+              </code></pre>
+                </div>
+            </div>
+            <aside class="notes"></aside>
+        </section>
+        <section id="prompt-vs-tool">
+            <blockquote class="big">Ein Prompt ist eine <strong>Bitte</strong>.<br>Ein Tool ist eine
+                <strong>Regel</strong>.
+            </blockquote>
+            <aside class="notes"></aside>
+        </section>
+
+        <!-- 6 · Tools miteinbeziehen -->
+
+        <section id="payoff">
+            <p class="kicker">Kapitel 6</p>
+            <h2>Tools miteinbeziehen</h2>
+            <ul>
+                <li class="fragment">Die Prüflogik läuft lokal und braucht <strong>keine Modell-Tokens</strong>.</li>
+                <li class="fragment">Die KI bekommt nur das Feedback der Checks und korrigiert den Code.</li>
+                <li class="fragment">Docs und Examples werden Leitplanken</li>
+                <li class="fragment">Migrationen: nur auf Anfrage, mit bestätigtem Mapping</li>
+            </ul>
+            <aside class="notes"></aside>
+        </section>
+        <section id="own-run">
+            <h2>Dasselbe Prinzip</h2>
+            <p class="meta">Skill <code>contao-extension-modernize</code> auf eine alte Contao-Extension</p>
+            <ul>
+                <li class="fragment">dlh_googlemaps ist nun Contao 6 ready</li>
+                <li class="fragment">47 Tool-Aufrufe (Anrufe), 16 Minuten, 95k Tokens Ausgabe, geschätzt ca. 5 $ (Opus
+                    5.5 - mittel)
+                </li>
+            </ul>
+            <p class="fragment"><strong>Was sich wiederholt, wird ein Skript.</strong></p>
+        </section>
+        <section id="can-ai-now">
+            <h2>Kann ich der KI jetzt vertrauen?</h2>
+            <p class="big fragment pop"><strong>Nein.</strong></p>
+            <p class="fragment">Aber der Code wird besser geliefert und wir haben weniger Feedback-Schleifen, weil die
+                Toolchain mit prüft.</p>
+            <p class="fragment" style="padding-top:1em">Modelle werden klüger. Deterministisch werden sie nie.</p>
+            <aside class="notes"></aside>
+        </section>
+        <section id="dijkstra">
+            <blockquote class="big">„Program testing can be used to show the presence of bugs, but never to show their
+                absence!“
+            </blockquote>
+            <p class="meta">Edsger W. Dijkstra, „Notes on Structured Programming“, 1970</p>
+            <p class="fragment" style="padding-top:.5em">Wir garantieren nicht, dass der Code fehlerfrei ist.</p>
+            <p class="fragment" style="padding-top:.5em"><strong>Aber jede Regel, die wir kennen, wird jedes Mal
+                eingehalten.</strong></p>
+            <p class="fragment meta" style="padding-top:.5em">Das gilt für KI-Code genauso wie für unseren eigenen.</p>
+            <aside class="notes">
+                Dijkstra: Turing-Award 1972, der mit dem kürzesten Pfad und „Go To Statement Considered Harmful“ (1968).
+                Ihm wird auch zugeschrieben: „Wenn Debugging das Entfernen von Bugs ist, dann ist Programmieren das
+                Hineinschreiben.“
+                Deshalb Learnings: jeder neue Fehler → neue Regel → die Garantie wächst mit.
+                Schlussgedanke: Der Agent bekommt Werkzeuge und Grenzen, keinen Freifahrtschein.
+            </aside>
+        </section>
+
+        <section id="contact" class="cover">
+            <div>
+                <h2>Kontakt</h2>
+                <ul>
+                    <li><a href="https://github.com/zoglo">github.com/zoglo</a></li>
+                    <li><a href="mailto:sebastian@contao.org">sebastian@contao.org</a></li>
+                    <li><a href="mailto:hallo@digitaledin.ge">hallo@digitaledin.ge</a></li>
+                    <li>Slack · zoglo</li>
+                    <li>Digitale Dinge GmbH</li>
+                </ul>
+            </div>
+        </section>
+
+    </div>
+</div>
+
+<script src="dist/reveal.js"></script>
+<script src="plugin/notes/notes.js"></script>
+<script src="plugin/markdown/markdown.js"></script>
+<script src="plugin/highlight/highlight.js"></script>
+<script>
+    const root = document.documentElement;
+    const radios = document.querySelectorAll('.theme-switch input[name="theme"]');
+
+    radios.forEach((radio) => {
+        radio.checked = radio.value === root.dataset.theme;
+        radio.addEventListener('change', () => {
+            root.dataset.theme = radio.value;
+            try {
+                localStorage.setItem('dd-theme', radio.value);
+            } catch (e) {
+            }
+        });
+    });
+
+    const motionToggle = document.getElementById('motion');
+    const applyMotion = () => {
+        const on = root.dataset.motion === 'on';
+        motionToggle.checked = on;
+        Reveal.configure({transition: on ? 'fade' : 'none', autoAnimate: on});
+    };
+
+    motionToggle.addEventListener('change', () => {
+        root.dataset.motion = motionToggle.checked ? 'on' : 'off';
+        try {
+            localStorage.setItem('dd-motion', root.dataset.motion);
+        } catch (e) {
+        }
+        applyMotion();
+    });
+
+    Reveal.on('ready', applyMotion);
+
+    Reveal.initialize({
+        hash: true,
+        width: 1600,
+        height: 900,
+        slideNumber: 'c/t',
+        transition: 'fade',
+        plugins: [RevealMarkdown, RevealHighlight, RevealNotes],
+    });
+</script>
+</body>
+</html>
